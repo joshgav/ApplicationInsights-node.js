@@ -5,16 +5,17 @@ import os = require("os");
 
 import Config = require("./Config");
 import Context = require("./Context");
-import ExceptionTracking = require("../AutoCollection/Exceptions");
-import ContractsModule = require("../Library/Contracts");
+import ContractsModule = require('./Contracts')
 import Channel = require("./Channel");
-import ServerRequestTracking = require("../AutoCollection/ServerRequests");
-import ClientRequestTracking = require("../AutoCollection/ClientRequests");
-import TelemetryProcessors = require("../TelemetryProcessors");
-import { CorrelationContextManager } from "../AutoCollection/CorrelationContextManager";
 import Sender = require("./Sender");
 import Util = require("./Util");
 import Logging = require("./Logging");
+
+import ExceptionTracking = require("../AutoCollection/Exceptions");
+import HttpRequestTracking = require("../AutoCollection/HttpAIRequestCollector");
+import HttpDependencyTracking = require("../AutoCollection/HttpAIDependencyCollector");
+import TelemetryProcessors = require("../TelemetryProcessors");
+import { CorrelationContextManager } from "../AutoCollection/CorrelationContextManager";
 
 class Client {
     private _telemetryProcessors: { (envelope: ContractsModule.Contracts.Envelope, contextObjects: {[name: string]: any;}): boolean; }[] = [];
@@ -149,14 +150,14 @@ class Client {
      * Use this when you need to perform custom logic to record the duration of the request.
      * 
      * This call will also add outgoing headers to the supplied response object for correlating telemetry across different services.
-     * @param request              http.ServerRequest - the request object to monitor
+     * @param request              http.IncomingMessage - the request object to monitor
      * @param response             http.ServerResponse - the response object to monitor
      * @param elapsedMilliseconds  number - the elapsed time taken to handle this request in milliseconds
      * @param properties           map[string, string] - additional data used for filtering in the portal. Defaults to empty.
      * @param error                any - an object indicating the request was unsuccessful. This object will be recorded with the request telemetry.
      */
-    public trackRequestSync(request: http.ServerRequest, response: http.ServerResponse, ellapsedMilliseconds?: number, properties?: { [key: string]: string; }, error?: any) {
-        ServerRequestTracking.trackRequestSync(this, request, response, ellapsedMilliseconds, properties, error);
+    public trackRequestSync(request: http.IncomingMessage, response: http.ServerResponse, elapsedMilliseconds?: number, properties?: { [key: string]: string; }, error?: any) {
+        HttpRequestTracking.trackRequestSync(this, request, response, elapsedMilliseconds, properties, error);
     }
 
     /**
@@ -165,16 +166,16 @@ class Client {
      * recording elapsed time from the start of this call to the request being sent back to the user.
      * 
      * This call will also add outgoing headers to the supplied response object for correlating telemetry across different services.
-     * @param request     http.ServerRequest - the request object to monitor
+     * @param request     http.IncomingMessage - the request object to monitor
      * @param response    http.ServerResponse - the response object to monitor
      * @param properties  map[string, string] - additional data used for filtering in the portal. Defaults to empty.
      */
-    public trackRequest(request: http.ServerRequest, response: http.ServerResponse, properties?: { [key: string]: string; }) {
-        ServerRequestTracking.trackRequest(this, request, response, properties);
+    public trackRequest(request: http.IncomingMessage, response: http.ServerResponse, properties?: { [key: string]: string; }) {
+        HttpRequestTracking.trackRequest(this, request, response, properties);
     }
 
     /**
-     * Log an outgoing ClientRequest dependency. This is a helper method around trackDependency for common outgoing HTTP calls.
+     * Log an OutgoingHttpDependency dependency. This is a helper method around trackDependency for common outgoing HTTP calls.
      * Use this at the beginning of your request.
      * 
      * This call will also add outgoing headers to your request for correlating telemetry across different services.
@@ -182,8 +183,13 @@ class Client {
      * @param response   http.ClientRequest - the outgoing request to monitor
      * @param properties map[string, string] - additional data used for filtering in the portal. Defaults to empty.
      */
+    public trackHttpDependency(requestOptions: string | http.RequestOptions | https.RequestOptions, request: http.ClientRequest, properties?: { [key: string]: string; }) {
+        HttpDependencyTracking.trackDependency(this, requestOptions, request, properties);
+    }
+
+    // deprecate! in fact this logs HTTP dependency
     public trackDependencyRequest(requestOptions: string | http.RequestOptions | https.RequestOptions, request: http.ClientRequest, properties?: { [key: string]: string; }) {
-        ClientRequestTracking.trackRequest(this, requestOptions, request, properties);
+        this.trackHttpDependency(requestOptions, request, properties);
     }
 
     /**

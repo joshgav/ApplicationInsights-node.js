@@ -8,6 +8,15 @@ class Util {
     public static MAX_PROPERTY_LENGTH = 1024;
     private static document:any = typeof document !== "undefined" ? document : {};
 
+
+    public static getAppId (ikeyOrClient: string | Client) : string {
+        if (typeof ikeyOrClient === 'string') {
+            // call endpoint to get an app ID and cache it
+        } else {
+            return Util.getAppId(ikeyOrClient.config.instrumentationKey);
+        }
+    }
+
     /**
      * helper method to access userId and sessionId cookie
      */

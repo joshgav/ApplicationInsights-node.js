@@ -18,6 +18,7 @@ class Config {
     public maxBatchIntervalMs: number;
     public disableAppInsights: boolean;
     public samplingPercentage: number;
+    public appId: string
 
     // A list of domains for which correlation headers will not be added.
     public correlationHeaderExcludedDomains: string[];
@@ -25,6 +26,7 @@ class Config {
     constructor(instrumentationKey?: string) {
         this.instrumentationKey = instrumentationKey || Config._getInstrumentationKey();
         this.instrumentationKeyHash = Config._getStringHashBase64(this.instrumentationKey);
+        this.appId = this._getAppId(this.instrumentationKey);
         this.endpointUrl = "https://dc.services.visualstudio.com/v2/track";
         this.sessionRenewalMs = 30 * 60 * 1000;
         this.sessionExpirationMs = 24 * 60 * 60 * 1000;
@@ -37,6 +39,22 @@ class Config {
             "*.blob.core.chinacloudapi.cn",
             "*.blob.core.cloudapi.de",
             "*.blob.core.usgovcloudapi.net"];
+    }
+
+
+    public static appIdEndpointUrl: string = "";
+    private static _ikeyAppIdMap: object = {};
+
+    private _getAppId(ikey: string): string {
+        if (Config._ikeyAppIdMap[ikey]) {
+            return Config._ikeyAppIdMap[ikey];
+        } else {
+            //http.request(Config.appIdEndpoint, res => {
+            //    Config._ikeyAppIdMap[ikey] = res.appId;
+            //    this.appId = res.appId;
+            //});
+        }
+        return '';
     }
 
     private static _getInstrumentationKey(): string {

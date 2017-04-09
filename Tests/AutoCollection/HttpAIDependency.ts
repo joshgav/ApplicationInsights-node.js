@@ -2,21 +2,68 @@ import http = require("http");
 import assert = require("assert");
 import sinon = require("sinon");
 
-import ClientRequestParser = require("../../AutoCollection/ClientRequestParser");
+import HttpAIDependency = require("../../AutoCollection/HttpAIDependency");
 import ContractsModule = require("../../Library/Contracts");
+import Client = require("../../Library/Client");
 
-describe("AutoCollection/ClientRequestParser", () => {
+describe("AutoCollection/HttpAIDependency", () => {
+
+    describe("#constructor", function () {
+
+        let mockClientRequest: http.ClientRequest = <any>{
+            agent: { protocol: "http" },
+        };
+
+        let mockIncomingMessage: http.IncomingMessage = <any>{
+            method: "GET",
+            url: "/search?q=test",
+            socket: {
+                encrypted: false
+            },
+            headers: {
+                host: "bing.com"
+            }
+        }
+
+        let mockClient: Client = <any>{
+            config: {
+                appId: "ourAppId"
+            }
+        }
+
+        it("should set theirAppId from incoming Request-Context header", function () {
+            const tester = new HttpAIDependency(<any>mockClient, "http://bing.com/search", <any>mockClientRequest);
+            mockIncomingMessage.headers["Request-Context"] = "appId=testApp";
+            tester.onResponse(mockIncomingMessage);
+            assert.equal(tester.theirAppId, 'testApp');
+            assert.equal(tester.appId, 'ourAppId');
+        });
+
+        it("should set theirAppId to empty string if not specified", function () {
+            const tester = new HttpAIDependency(<any>mockClient, "http://bing.com/search", <any>mockClientRequest);
+            mockIncomingMessage.headers["Request-Context"] = "";
+            tester.onResponse(mockIncomingMessage);
+            assert.equal(tester.theirAppId, '');
+            assert.equal(tester.appId, 'ourAppId');
+        });
+
+        it("should set appId to our AppId if a client is provided", function () {
+            let tester = new HttpAIDependency(<any>mockClient, "http://bing.com/search", <any>mockClientRequest);
+            assert.equal(tester.appId, 'ourAppId');
+        });
+
+    });
 
     describe("#getDependencyData()", () => {
         let request: http.ClientRequest = <any>{
             agent: { protocol: "http" },
         };
-        let response: http.ClientResponse = <any>{
+        let response: http.IncomingMessage = <any>{
         };
 
         it("should return correct data for a URL string", () => {
             request["method"] = "GET";
-            let parser = new ClientRequestParser("http://bing.com/search", request);
+            let parser = new HttpAIDependency(new Client("mock"), "http://bing.com/search", request);
 
             response.statusCode = 200;
             parser.onResponse(response);
@@ -31,7 +78,7 @@ describe("AutoCollection/ClientRequestParser", () => {
 
         it("should return correct data for a posted URL with query string", () => {
             request["method"] = "POST";
-            let parser = new ClientRequestParser("http://bing.com/search?q=test", request);
+            let parser = new HttpAIDependency(new Client("mock"), "http://bing.com/search?q=test", request);
 
             response.statusCode = 200;
             parser.onResponse(response);
@@ -51,7 +98,7 @@ describe("AutoCollection/ClientRequestParser", () => {
                 path: "/search?q=test",
             };
             request["method"] = "POST";
-            let parser = new ClientRequestParser(requestOptions, request);
+            let parser = new HttpAIDependency(new Client("mock"), requestOptions, request);
 
             response.statusCode = 200;
             parser.onResponse(response);
@@ -72,7 +119,7 @@ describe("AutoCollection/ClientRequestParser", () => {
                 path: path + "msft"
             };
             request["method"] = "GET";
-            let parser = new ClientRequestParser(requestOptions, request);
+            let parser = new HttpAIDependency(new Client("mock"), requestOptions, request);
 
             response.statusCode = 200;
             parser.onResponse(response);
@@ -87,7 +134,7 @@ describe("AutoCollection/ClientRequestParser", () => {
 
         it("should return non-success for a request error", () => {
             request["method"] = "GET";
-            let parser = new ClientRequestParser("http://bing.com/search", request);
+            let parser = new HttpAIDependency(new Client("mock"), "http://bing.com/search", request);
             parser.onError(new Error("test error message"));
 
             let dependencyData = parser.getDependencyData().baseData;
@@ -99,7 +146,7 @@ describe("AutoCollection/ClientRequestParser", () => {
 
         it("should return non-success for a response error status", () => {
             request["method"] = "GET";
-            let parser = new ClientRequestParser("http://bing.com/search", request);
+            let parser = new HttpAIDependency(new Client("mock"), "http://bing.com/search", request);
 
             response.statusCode = 400;
             parser.onResponse(response);

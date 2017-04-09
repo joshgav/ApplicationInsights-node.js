@@ -8,14 +8,15 @@ describe("ApplicationInsights", () => {
         var Console = require("../AutoCollection/Console");
         var Exceptions = require("../AutoCollection/Exceptions");
         var Performance = require("../AutoCollection/Performance");
-        var ServerRequests = require("../AutoCollection/ServerRequests");
-        var ClientRequests = require("../AutoCollection/ClientRequests");
+        var HttpAIRequestCollector = require("../AutoCollection/HttpAIRequestCollector");
+        var HttpAIDependencyCollector = require("../AutoCollection/HttpAIDependencyCollector");
+
         beforeEach(() => {
             Console.INSTANCE = undefined;
             Exceptions.INSTANCE = undefined;
             Performance.INSTANCE = undefined;
-            ServerRequests.INSTANCE = undefined;
-            ClientRequests.INSTANCE = undefined;
+            HttpAIRequestCollector.INSTANCE = undefined;
+            HttpAIDependencyCollector.INSTANCE = undefined;
         });
 
         it("should not warn if setup is called once", () => {
@@ -53,15 +54,15 @@ describe("ApplicationInsights", () => {
         var Console = require("../AutoCollection/Console");
         var Exceptions = require("../AutoCollection/Exceptions");
         var Performance = require("../AutoCollection/Performance");
-        var ServerRequests = require("../AutoCollection/ServerRequests");
-        var ClientRequests = require("../AutoCollection/ClientRequests");
+        var HttpAIRequestCollector = require("../AutoCollection/HttpAIRequestCollector");
+        var HttpAIDependencyCollector = require("../AutoCollection/HttpAIDependencyCollector");
 
         beforeEach(() => {
             Console.INSTANCE = undefined;
             Exceptions.INSTANCE = undefined;
             Performance.INSTANCE = undefined;
-            ServerRequests.INSTANCE = undefined;
-            ClientRequests.INSTANCE = undefined;
+            HttpAIRequestCollector.INSTANCE = undefined;
+            HttpAIDependencyCollector.INSTANCE = undefined;
         });
 
         afterEach(() => AppInsights.client = undefined);
@@ -86,16 +87,16 @@ describe("ApplicationInsights", () => {
         var Console = require("../AutoCollection/Console");
         var Exceptions = require("../AutoCollection/Exceptions");
         var Performance = require("../AutoCollection/Performance");
-        var ServerRequests = require("../AutoCollection/ServerRequests");
-        var ClientRequests = require("../AutoCollection/ClientRequests");
+        var HttpAIRequestCollector = require("../AutoCollection/HttpAIRequestCollector");
+        var HttpAIDependencyCollector = require("../AutoCollection/HttpAIDependencyCollector");
 
         beforeEach(() => {
             AppInsights.client = undefined;
             Console.INSTANCE = undefined;
             Exceptions.INSTANCE = undefined;
             Performance.INSTANCE = undefined;
-            ServerRequests.INSTANCE = undefined;
-            ClientRequests.INSTANCE = undefined;
+            HttpAIRequestCollector.INSTANCE = undefined;
+            HttpAIDependencyCollector.INSTANCE = undefined;
         });
 
         it("auto-collection is initialized by default", () => {
@@ -104,9 +105,9 @@ describe("ApplicationInsights", () => {
             //assert.ok(Console.INSTANCE.isInitialized());
             assert.ok(Exceptions.INSTANCE.isInitialized());
             assert.ok(Performance.INSTANCE.isInitialized());
-            assert.ok(ServerRequests.INSTANCE.isInitialized());
-            assert.ok(!ServerRequests.INSTANCE.isAutoCorrelating());
-            assert.ok(ClientRequests.INSTANCE.isInitialized());
+            assert.ok(HttpAIRequestCollector.INSTANCE.isInitialized());
+            assert.ok(!HttpAIRequestCollector.INSTANCE.isAutoCorrelating());
+            assert.ok(HttpAIDependencyCollector.INSTANCE.isInitialized());
         });
 
         it("auto-collection is not initialized if disabled before 'start'", () => {
@@ -122,9 +123,9 @@ describe("ApplicationInsights", () => {
             assert.ok(!Console.INSTANCE.isInitialized());
             assert.ok(!Exceptions.INSTANCE.isInitialized());
             assert.ok(!Performance.INSTANCE.isInitialized());
-            assert.ok(!ServerRequests.INSTANCE.isInitialized());
-            assert.ok(!ServerRequests.INSTANCE.isAutoCorrelating());
-            assert.ok(!ClientRequests.INSTANCE.isInitialized());
+            assert.ok(!HttpAIRequestCollector.INSTANCE.isInitialized());
+            assert.ok(!HttpAIRequestCollector.INSTANCE.isAutoCorrelating());
+            assert.ok(!HttpAIDependencyCollector.INSTANCE.isInitialized());
         });
     });
 });
